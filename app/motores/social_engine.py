@@ -2,15 +2,30 @@ from transformers import pipeline
 
 
 # =========================
-# CONFIGURACIÓN DEL MODELO
+# MODELO
 # =========================
+
 MODEL_NAME = "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"
 
 
 # =========================
-# ETIQUETAS DEL SISTEMA
+# ETAPA 1
+# DETECCIÓN GENERAL
 # =========================
+
+MANIPULATION_LABELS = [
+    "fraude o intento de manipulación",
+    "conversación normal"
+]
+
+
+# =========================
+# ETAPA 2
+# IDENTIFICACIÓN DE TÁCTICAS
+# =========================
+
 SOCIAL_LABELS = [
+
     "urgencia o presión para actuar inmediatamente",
     "solicitud de dinero o transferencia",
     "suplantación de identidad",
@@ -22,32 +37,53 @@ SOCIAL_LABELS = [
     "aislamiento o secreto",
     "falsa emergencia",
     "obtención de información confidencial"
+
 ]
 
 
-# =========================
-# MAPEO A SALIDA INTERNA
-# =========================
 LABEL_MAPPING = {
-    "urgencia o presión para actuar inmediatamente": "urgencia",
-    "solicitud de dinero o transferencia": "solicitud_economica",
-    "suplantación de identidad": "suplantacion",
-    "amenaza o intimidación": "amenaza",
-    "manipulación emocional": "manipulacion_emocional",
-    "chantaje emocional": "chantaje_emocional",
-    "autoridad o institución": "autoridad",
-    "culpa": "culpa",
-    "aislamiento o secreto": "aislamiento",
-    "falsa emergencia": "falsa_emergencia",
-    "obtención de información confidencial": "info_confidencial"
+
+    "urgencia o presión para actuar inmediatamente":
+        "urgencia",
+
+    "solicitud de dinero o transferencia":
+        "solicitud_economica",
+
+    "suplantación de identidad":
+        "suplantacion",
+
+    "amenaza o intimidación":
+        "amenaza",
+
+    "manipulación emocional":
+        "manipulacion_emocional",
+
+    "chantaje emocional":
+        "chantaje_emocional",
+
+    "autoridad o institución":
+        "autoridad",
+
+    "culpa":
+        "culpa",
+
+    "aislamiento o secreto":
+        "aislamiento",
+
+    "falsa emergencia":
+        "falsa_emergencia",
+
+    "obtención de información confidencial":
+        "info_confidencial"
+
 }
 
 
-# =========================
-# ESTADO BASE (SI FALLA EL MODELO)
-# =========================
+
 def empty_result():
+
     return {
+
         "urgencia": 0,
         "solicitud_economica": 0,
         "suplantacion": 0,
@@ -59,63 +95,201 @@ def empty_result():
         "aislamiento": 0,
         "falsa_emergencia": 0,
         "info_confidencial": 0
+
     }
 
 
+
 # =========================
-# MOTOR PRINCIPAL
+# MOTOR SOCIAL ENGINE
 # =========================
+
 class SocialEngine:
 
+
     def __init__(self):
-        print("⏳ [IA] Inicializando Motor 3: Ingeniería Social (mDeBERTa)...")
+
+        print(
+            "⏳ [IA] Inicializando Motor 3: Ingeniería Social (mDeBERTa)..."
+        )
+
 
         try:
-            self.model_name = MODEL_NAME
 
             self.clasificador = pipeline(
-                task="zero-shot-classification",
-                model=self.model_name
+                "zero-shot-classification",
+                model=MODEL_NAME
             )
 
-            print("✅ [IA] Motor 3 cargado correctamente.")
+
+            print(
+                "✅ [IA] Motor 3 cargado correctamente."
+            )
+
 
         except Exception as e:
-            print(f"❌ [SocialEngine] Error al cargar modelo: {str(e)}")
+
+            print(
+                f"❌ Error cargando SocialEngine: {e}"
+            )
+
             self.clasificador = None
 
-    # =========================
-    # ANÁLISIS PRINCIPAL
-    # =========================
-    def analizar_texto(self, texto: str) -> dict:
 
-        if not self.clasificador or not texto or not texto.strip():
-            return empty_result()
 
-        try:
-            resultado = self.clasificador(
-                sequences=texto,
-                candidate_labels=SOCIAL_LABELS,
-                multi_label=True
-            )
+    # =====================================================
+    # FASE 1
+    # DETECTAR SI EXISTE POSIBLE MANIPULACIÓN
+    # =====================================================
 
-            desglose = empty_result()
+    def detectar_manipulacion(self, texto):
 
-            for label, score in zip(resultado["labels"], resultado["scores"]):
+        if not self.clasificador:
+            return {
+            "fraude_detectado": False,
+            "confianza_fraude": 0
+        }
 
-                key = LABEL_MAPPING.get(label)
 
-                if key:
-                    desglose[key] = int(score * 100)
+        resultado = self.clasificador(
 
-            return desglose
+        texto,
 
-        except Exception as e:
-            print(f"❌ [SocialEngine] Error en inferencia: {str(e)}")
-            return empty_result()
+        MANIPULATION_LABELS,
+
+        multi_label=False
+
+    )
+
+
+        etiqueta = resultado["labels"][0]
+
+        confianza = resultado["scores"][0]
+
+
+        fraude = (
+            etiqueta == "fraude o intento de manipulación"
+            and confianza >= 0.60
+    )
+
+
+        return {
+
+        "fraude_detectado": fraude,
+
+        "confianza_fraude": int(confianza * 100)
+
+    }
+
+
+
+    # =====================================================
+    # FASE 2
+    # ANALIZAR TÁCTICAS ESPECÍFICAS
+    # =====================================================
+
+    def analizar_tacticas(self, texto):
+
+
+        resultado = self.clasificador(
+
+            texto,
+
+            SOCIAL_LABELS,
+
+            multi_label=True
+
+        )
+
+
+        salida = empty_result()
+
+
+
+        for label, score in zip(
+
+            resultado["labels"],
+
+            resultado["scores"]
+
+        ):
+
+
+            key = LABEL_MAPPING.get(label)
+
+
+
+            if key:
+
+                valor = int(score * 100)
+
+
+                # Eliminamos ruido bajo
+                if valor >= 50:
+
+                    salida[key] = valor
+
+
+
+        return salida
+
+
+
+
+    # =====================================================
+    # MÉTODO PRINCIPAL
+    # =====================================================
+
+    def analizar_texto(self, texto):
+
+
+        if not texto or not texto.strip():
+
+            return {
+
+                "fraude_detectado": False,
+
+                "confianza_fraude": 0,
+
+                "tacticas": empty_result()
+
+            }
+
+
+
+        primera_etapa = self.detectar_manipulacion(texto)
+
+
+
+        if not primera_etapa["fraude_detectado"]:
+
+
+            return {
+
+                **primera_etapa,
+
+                "tacticas": empty_result()
+
+            }
+
+
+
+        tacticas = self.analizar_tacticas(texto)
+
+
+
+        return {
+
+            **primera_etapa,
+
+            "tacticas": tacticas
+
+        }
+
 
 
 # =========================
 # INSTANCIA GLOBAL
 # =========================
+
 social_engine = SocialEngine()
