@@ -1,5 +1,8 @@
 import os
+import sys
 import shutil
+import tempfile
+from pathlib import Path
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -7,9 +10,16 @@ from app.config import settings
 from app.security import validar_archivo_audio
 from app.utils import calcular_riesgo_y_recomendaciones
 
+# El motor nuevo vive en app/motores/voice_engine/ y usa imports internos planos.
+VOICE_ENGINE_DIR = os.path.join(os.path.dirname(__file__), "motores", "voice_engine")
+if VOICE_ENGINE_DIR not in sys.path:
+    sys.path.insert(0, VOICE_ENGINE_DIR)
+
 # Importación de las instancias reales de los motores de IA
 from app.motores.whisper_engine import whisper_engine
 from app.motores.social_engine import social_engine
+
+# Motor 1 centralizado en el paquete nuevo app/motores/voice_engine/
 from app.motores.voice_engine import voice_ai_engine
 
 
@@ -34,12 +44,55 @@ def verificar_estado():
         "estado": "Online",
         "proyecto": settings.APP_NAME,
         "motores_cargados": [
-            "Motor 1 (Wav2Vec2-Bert-VoiceDetector)",
+            "Motor 1 (voice_engine / XLS-R-SLS)",
             "Motor 2 (Whisper-Tiny)",
             "Motor 3 (mDeBERTa Ingeniería Social)",
             "Motor 4 (Riesgo Consolidado)"
         ]
     }
+
+
+def _guardar_audio_temporal_voice_engine(file: UploadFile) -> str:
+    nombre_archivo = Path(file.filename or "audio").name
+    temp_dir = Path(tempfile.gettempdir()) / "callshield_voice_engine"
+    temp_dir.mkdir(parents=True, exist_ok=True)
+
+    ruta_guardado = temp_dir / f"voice_engine_{nombre_archivo}"
+
+    with ruta_guardado.open("wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    return str(ruta_guardado)
+
+
+@app.get("/api/v1/voice-engine/health")
+def health_voice_engine():
+    return voice_ai_engine.estado()
+
+
+@app.post("/api/v1/voice-engine/analizar")
+async def analizar_audio_voice_engine(file: UploadFile = File(...)):
+    validar_archivo_audio(file)
+
+    ruta_guardada = _guardar_audio_temporal_voice_engine(file)
+
+    try:
+        if not voice_ai_engine.listo and voice_ai_engine.error_carga:
+            raise HTTPException(status_code=503, detail=voice_ai_engine.error_carga)
+
+        reporte = voice_ai_engine.analizar_clonacion(ruta_guardada)
+        return reporte.to_dict()
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error en voice_engine: {str(exc)}"
+        ) from exc
+    finally:
+        if os.path.exists(ruta_guardada):
+            os.remove(ruta_guardada)
 
 
 @app.post("/api/v1/analisis/forense")
@@ -133,16 +186,6 @@ async def analizar_audio_forense(file: UploadFile = File(...)):
                 "modelo": reporte_forense.evidencia_neuronal.nombre_modelo,
                 "modelo_disponible": reporte_forense.evidencia_neuronal.disponible,
                 "score_modelo": reporte_forense.evidencia_neuronal.score_fake_pct,
-
-                "benford": {
-                    "mad": reporte_forense.evidencia_benford.mad,
-                    "p_value": reporte_forense.evidencia_benford.p_value,
-                    "categoria": reporte_forense.evidencia_benford.categoria_conformidad
-                },
-
-                "entropia": {
-                    "valor_bits": reporte_forense.evidencia_entropia.valor_bits
-                },
 
                 "advertencia": reporte_forense.advertencia
             },

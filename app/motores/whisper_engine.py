@@ -18,8 +18,8 @@ for _ruta in RUTAS_FFMPEG_POSIBLES:
 
 class WhisperEngine:
     def __init__(self):
-        # 🚀 INCREMENTO DE FIABILIDAD: Escalamos a Whisper-Small local y gratuito
-        print("⏳ [IA] Inicializando Motor 2: Transcriptor Whisper Preciso (openai/whisper-small)...")
+        # INCREMENTO DE FIABILIDAD: Escalamos a Whisper-Small local y gratuito
+        print("[IA] Inicializando Motor 2: Transcriptor Whisper Preciso (openai/whisper-small)...")
         try:
             self.pipe = pipeline(
                 "automatic-speech-recognition", 
@@ -27,9 +27,9 @@ class WhisperEngine:
                 chunk_length_s=30,
                 batch_size=8
             )
-            print("✅ [IA] Motor 2 (Whisper Small) cargado exitosamente.")
+            print("[IA] Motor 2 (Whisper Small) cargado exitosamente.")
         except Exception as e:
-            print(f"❌ [Whisper Error] No se pudo inicializar el modelo Small: {str(e)}")
+            print(f"[Whisper Error] No se pudo inicializar el modelo Small: {str(e)}")
             self.pipe = None
 
         self.ultimo_idioma_detectado = "Detectando idioma nativo..."
@@ -45,11 +45,11 @@ class WhisperEngine:
             raise FileNotFoundError(f"No se encontró el archivo de audio en: {ruta_audio}")
         
         if not self.pipe:
-            print("⚠️ [Whisper] El pipeline no está operativo. Retornando cadena vacía.")
+            print("[Whisper] El pipeline no está operativo. Retornando cadena vacía.")
             return ""
 
         try:
-            print(f"🎙️ [Whisper Small] Procesando señales de audio en: {os.path.basename(ruta_audio)}")
+            print(f"[Whisper Small] Procesando señales de audio en: {os.path.basename(ruta_audio)}")
             
             # 🚀 OPTIMIZACIÓN DE ALTA FIABILIDAD:
             # Evaluación por haz (num_beams=4) para máxima coherencia en español generalizado.
@@ -89,7 +89,7 @@ class WhisperEngine:
             return texto_puro
 
         except Exception as e:
-            print(f"❌ [Whisper Small] Error crítico durante la transcripción: {str(e)}")
+            print(f"[Whisper Small] Error crítico durante la transcripción: {str(e)}")
             raise e
 
     def _extraer_metadatos_forenses(self, texto: str, chunks: list, duracion_fisica: float, idioma: str) -> None:
@@ -100,7 +100,7 @@ class WhisperEngine:
         total_chunks = len(chunks)
         duracion_habla = 0.0
         
-        # 🛡️ MEJORA DE CLAUDE: Validación ultra-robusta de chunks y timestamps para evitar IndexErrors
+        # MEJORA DE CLAUDE: Validación ultra-robusta de chunks y timestamps para evitar IndexErrors
         if chunks and isinstance(chunks, list):
             # Buscamos el último fragmento válido que contenga marcas de tiempo numéricas
             for chunk in reversed(chunks):
@@ -137,12 +137,12 @@ class WhisperEngine:
         }
 
         # 📺 Reporte pericial en consola de VS Code
-        print("\n📊 --- AUDITORÍA DE ALTA PRECISIÓN (MÓDULO WHISPER FORENSE) ---")
-        print(f"🌐 Idioma Detectado: {self.ultimo_idioma_detectado.upper()}")
-        print(f"⏱️ Duración Física de Archivo: {round(duracion_fisica, 2)} segs")
-        print(f"🎙️ Tiempo de Habla Efectiva (VAD): {round(duracion_habla, 2)} segs")
-        print(f"🤫 Porcentaje de Silencio/Pausas: {porcentaje_silencio}%")
-        print(f"📈 Ritmo del Habla: {palabras_por_segundo} palabras/seg")
+        print("\n[Auditoria Whisper] --- AUDITORIA DE ALTA PRECISION (MODULO WHISPER FORENSE) ---")
+        print(f"[Auditoria Whisper] Idioma Detectado: {self.ultimo_idioma_detectado.upper()}")
+        print(f"[Auditoria Whisper] Duracion Fisica de Archivo: {round(duracion_fisica, 2)} segs")
+        print(f"[Auditoria Whisper] Tiempo de Habla Efectiva (VAD): {round(duracion_habla, 2)} segs")
+        print(f"[Auditoria Whisper] Porcentaje de Silencio/Pausas: {porcentaje_silencio}%")
+        print(f"[Auditoria Whisper] Ritmo del Habla: {palabras_por_segundo} palabras/seg")
         print("----------------------------------------------------------------\n")
 
     def obtener_idioma_detectado(self) -> str:

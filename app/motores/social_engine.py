@@ -110,7 +110,7 @@ class SocialEngine:
     def __init__(self):
 
         print(
-            "⏳ [IA] Inicializando Motor 3: Ingeniería Social (mDeBERTa)..."
+            "[IA] Inicializando Motor 3: Ingenieria Social (mDeBERTa)..."
         )
 
         try:
@@ -121,14 +121,14 @@ class SocialEngine:
             )
 
             print(
-                "✅ [IA] Motor 3 cargado correctamente."
+                "[IA] Motor 3 cargado correctamente."
             )
 
 
         except Exception as e:
 
             print(
-                f"❌ Error cargando SocialEngine: {e}"
+                f"[SocialEngine] Error cargando SocialEngine: {e}"
             )
 
             self.clasificador = None

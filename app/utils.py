@@ -16,11 +16,14 @@ def calcular_riesgo_y_recomendaciones(
 
 
     # Riesgo consolidado
-    riesgo_global = round(
-        (score_voz_ia * 0.25)
-        +
-        (riesgo_social * 0.75)
-    )
+    if score_voz_ia >= 70:
+        riesgo_global = round(max(score_voz_ia, (score_voz_ia * 0.25) + (riesgo_social * 0.75)))
+    else:
+        riesgo_global = round(
+            (score_voz_ia * 0.25)
+            +
+            (riesgo_social * 0.75)
+        )
 
 
     if riesgo_global >= 80:
