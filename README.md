@@ -69,6 +69,8 @@ Para encender el servidor y activar el recargado automático ante cualquier camb
 
 ```
 uvicorn app.main:app --reload
+o
+python app/pruebas-whisper/test_whisper.py
 ```
 
 Una vez que observes en consola el mensaje `Application startup complete`, abre tu navegador web preferido e ingresa al siguiente enlace para interactuar de forma gráfica con la API:
