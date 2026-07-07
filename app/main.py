@@ -10,7 +10,8 @@ from app.utils import calcular_riesgo_y_recomendaciones
 # Importación de las instancias reales de los motores de IA
 from app.motores.whisper_engine import whisper_engine
 from app.motores.social_engine import social_engine
-from app.motores.voice_ai_engine import voice_ai_engine
+from app.motores.voice_engine import voice_ai_engine
+
 
 app = FastAPI(
     title=settings.APP_NAME,

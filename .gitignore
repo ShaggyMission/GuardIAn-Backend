@@ -34,3 +34,5 @@ models/
 
 .cache/
 huggingface/
+
+contexto_guardian_ai_v2.md

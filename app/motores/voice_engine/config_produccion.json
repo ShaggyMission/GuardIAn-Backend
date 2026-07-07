@@ -1,0 +1,6 @@
+{
+  "umbral_decision": 0.999979,
+  "modelo_checkpoint": "sls_best.pth",
+  "sample_rate_entrada": 16000,
+  "max_len_muestras": 64600
+}
