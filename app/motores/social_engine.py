@@ -328,12 +328,19 @@ class SocialEngine:
 
                 "soy tu hijo",
                 "soy tu hija",
+                "soy yo",
+                "soy tu mamá",
+                "soy tu papá",
+                "soy tu hermano",
+                "soy tu hermana",
                 "soy del banco",
                 "soy policía",
                 "soy policia",
-                "soy familiar"
+                "soy familiar",
+                "cambié de número",
+                "este es mi nuevo número"
 
-            ],
+],
 
 
             "aislamiento": [
@@ -642,7 +649,59 @@ class SocialEngine:
 
             }
 
+
+        # =====================================
+        # ETAPA 1
+        # DETECCIÓN GENERAL DE FRAUDE
+        # =====================================
+
+        primera_etapa = self.detectar_manipulacion(texto)
+
+
+
+        # Si no detecta intento de fraude
+        if not primera_etapa["fraude_detectado"]:
+
+            tacticas_modelo = self.analizar_tacticas(texto)
+
+            tacticas = self.filtrar_tacticas_contextuales(
+                texto,
+                tacticas_modelo
+    )
+
+            riesgo_social = self.calcular_riesgo_social(
+                 primera_etapa["confianza_fraude"],
+                 tacticas
+    )
+
+            nivel = self.obtener_nivel_riesgo(
+             riesgo_social
+    )
+
+        return {
+
+        "fraude_detectado": riesgo_social >= 50,
+
+        "confianza_fraude": primera_etapa["confianza_fraude"],
+
+        "riesgo_social": riesgo_social,
+
+        "nivel_riesgo": nivel,
+
+        "tacticas": tacticas
+
+    }
+
+
+
+        # =====================================
+        # ETAPA 2
+        # DETECCIÓN DE TÁCTICAS
+        # =====================================
+
         tacticas_modelo = self.analizar_tacticas(texto)
+
+
 
         tacticas = self.filtrar_tacticas_contextuales(
 
@@ -652,9 +711,12 @@ class SocialEngine:
 
         )
 
-        # ===============================
+
+
+        # =====================================
         # ETAPA 3
-        # ===============================
+        # CÁLCULO DE RIESGO SOCIAL
+        # =====================================
 
         riesgo_social = self.calcular_riesgo_social(
 
@@ -664,15 +726,15 @@ class SocialEngine:
 
         )
 
+
+
         nivel = self.obtener_nivel_riesgo(
 
             riesgo_social
 
         )
 
-        # ===============================
-        # RESULTADO
-        # ===============================
+
 
         return {
 

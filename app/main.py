@@ -35,7 +35,8 @@ def verificar_estado():
         "motores_cargados": [
             "Motor 1 (Wav2Vec2-Bert-VoiceDetector)",
             "Motor 2 (Whisper-Tiny)",
-            "Motor 3 (BART-ZeroShot)"
+            "Motor 3 (mDeBERTa Ingeniería Social)",
+            "Motor 4 (Riesgo Consolidado)"
         ]
     }
 
@@ -144,7 +145,8 @@ async def analizar_audio_forense(file: UploadFile = File(...)):
 
                 "advertencia": reporte_forense.advertencia
             },
-
+            
+            "detalles_audio_whisper": whisper_engine.obtener_metricas_forenses(),
             "recomendaciones_seguridad": analisis_riesgo["recomendaciones"]
         }
 

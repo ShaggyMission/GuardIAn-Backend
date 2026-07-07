@@ -17,9 +17,9 @@ def calcular_riesgo_y_recomendaciones(
 
     # Riesgo consolidado
     riesgo_global = round(
-        (score_voz_ia * 0.40)
+        (score_voz_ia * 0.25)
         +
-        (riesgo_social * 0.60)
+        (riesgo_social * 0.75)
     )
 
 
