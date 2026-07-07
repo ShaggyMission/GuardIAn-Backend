@@ -563,21 +563,6 @@ class SocialEngine:
 
     }
 
-
-            return {
-
-        **primera_etapa,
-
-        "riesgo_social": riesgo,
-
-        "nivel_riesgo": nivel,
-
-        "tacticas": empty_result()
-
-    }
-
-
-
         tacticas_modelo = self.analizar_tacticas(texto)
 
 
