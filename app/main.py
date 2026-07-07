@@ -129,6 +129,8 @@ async def analizar_audio_forense(file: UploadFile = File(...)):
                 "advertencia": reporte_forense.advertencia
             },
 
+            "detalles_audio_whisper": whisper_engine.obtener_metricas_forenses(),
+
             "recomendaciones_seguridad": analisis_riesgo["recomendaciones"]
         }
 
