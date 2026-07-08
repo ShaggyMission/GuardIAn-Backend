@@ -34,3 +34,6 @@ models/
 
 .cache/
 huggingface/
+
+# Base de datos local de CallShield
+callshield.db
