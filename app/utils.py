@@ -62,3 +62,4 @@ def calcular_riesgo_y_recomendaciones(
         "riesgo_global": riesgo_global,
         "nivel": nivel,  
         "recomendaciones_seguridad": recomendaciones  
+        }
