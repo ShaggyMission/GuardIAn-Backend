@@ -28,6 +28,8 @@ app/
   config.py
   security.py
   utils.py
+  database.py
+  models.py
   motores/
     whisper_engine.py
     social_engine.py
@@ -58,6 +60,7 @@ El proyecto usa principalmente:
 - Librosa
 - SoundFile
 - Scikit-learn
+- SQLAlchemy
 
 Las dependencias estan listadas en `requirements.txt`.
 
@@ -183,3 +186,17 @@ curl.exe -X POST "http://127.0.0.1:8000/api/v1/analisis/forense" -F "file=@C:\ru
 - Mantener `sls_best.pth` junto a `config_produccion.json`.
 - Verificar que las dependencias de audio esten instaladas correctamente.
 - Para despliegue real, se recomienda correr el servicio con un servidor ASGI estable y no solo con `--reload`.
+
+## DB (SQLite + SQLAlchemy)
+
+Para dotar al sistema de validez pericial y permitir un histórico local sin fricciones, se implementó una **Arquitectura de Persistencia No Invasiva** basada en una **Tabla Líquida**.
+
+### Características de Diseño
+- **Anonimato Forense:** No se almacenan datos personales (nombres o correos). La identidad y pertenencia de los datos se ligan directamente a un identificador único de hardware (`uuid_dispositivo`) enviado por el frontend multimedia.
+- **Estructura Líquida:** Las evidencias se guardan serializadas en texto plano mediante `json.dumps()` dentro de la columna `resultado_json`. Esto blinda la base de datos contra cambios o actualizaciones futuras en las métricas de los motores de IA.
+- **Tolerancia a Fallos:** El guardado local se ejecuta en caliente de forma asíncrona/pasiva al final de la tubería multimedia. Si la base de datos llegara a bloquearse, el sistema captura el error en los logs pero jamás interrumpe la respuesta HTTP del usuario.
+
+### Endpoints Forenses Añadidos
+- `POST /api/v1/analisis/forense`: Recibe el archivo de audio junto al parámetro `uuid_dispositivo` en el cuerpo del formulario para procesar y almacenar el registro.
+- `GET /api/v1/analisis/historial/{uuid_dispositivo}`: Recupera cronológicamente el histórico de reportes de un dispositivo específico, desempaquetando el JSON nativo mediante `json.loads()`.
+- `GET /api/v1/analisis/auditoria`: Endpoint global plano diseñado para peritos judiciales, permitiendo extraer la cadena de custodia completa del sistema.
