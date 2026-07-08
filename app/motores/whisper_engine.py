@@ -34,7 +34,7 @@ class WhisperEngine:
 
         self.ultimo_idioma_detectado = "Detectando idioma nativo..."
         self.metricas_ultimo_analisis: Dict[str, Any] = {}
-        self.ultimo_resultado_raw = {}  # 💡 MEJORA: Cache de depuración para auditorías
+        self.ultimo_resultado_raw = {}  # Cache de depuración para auditorías
 
     def transcribir(self, ruta_audio: str) -> str:
         """
@@ -51,7 +51,7 @@ class WhisperEngine:
         try:
             print(f"[Whisper Small] Procesando señales de audio en: {os.path.basename(ruta_audio)}")
             
-            # 🚀 OPTIMIZACIÓN DE ALTA FIABILIDAD:
+            # OPTIMIZACIÓN DE ALTA FIABILIDAD:
             # Evaluación por haz (num_beams=4) para máxima coherencia en español generalizado.
             resultado = self.pipe(
                 ruta_audio, 
@@ -67,11 +67,11 @@ class WhisperEngine:
             texto_puro = resultado.get("text", "").strip()
             chunks_temporales = resultado.get("chunks", [])
 
-            # 🛠️ EXTRAER IDIOMA REAL DINÁMICO DESDE LOS METADATOS DE HUGGING FACE
+            # EXTRAER IDIOMA REAL DINÁMICO DESDE LOS METADATOS DE HUGGING FACE
             # Si el pipeline no expone el nodo, usamos "es" por defecto probabilístico del MVP
             idioma_real = resultado.get("language", "es")
 
-            # 🛠️ MEDICIÓN NATIVA DEL ARCHIVO REAL MEDIANTE METADATOS WAV
+            # MEDICIÓN NATIVA DEL ARCHIVO REAL MEDIANTE METADATOS WAV
             duracion_fisica_real = 0.0
             try:
                 with wave.open(ruta_audio, "rb") as archivo_wav:
@@ -100,7 +100,7 @@ class WhisperEngine:
         total_chunks = len(chunks)
         duracion_habla = 0.0
         
-        # MEJORA DE CLAUDE: Validación ultra-robusta de chunks y timestamps para evitar IndexErrors
+        # Validación ultra-robusta de chunks y timestamps para evitar IndexErrors
         if chunks and isinstance(chunks, list):
             # Buscamos el último fragmento válido que contenga marcas de tiempo numéricas
             for chunk in reversed(chunks):
@@ -113,7 +113,7 @@ class WhisperEngine:
         if duracion_fisica == 0.0:
             duracion_fisica = duracion_habla
 
-        # 🔍 Métrica Forense Única: Segundos de silencio y pausas muertas
+        # Métrica Forense Única: Segundos de silencio y pausas muertas
         tiempo_silencio = max(0.0, duracion_fisica - duracion_habla)
         porcentaje_silencio = round((tiempo_silencio / duracion_fisica) * 100, 2) if duracion_fisica > 0 else 0.0
 
