@@ -91,7 +91,7 @@ async def analizar_audio_forense(
 
     # Definir rutas para el procesamiento seguro del archivo
     nombre_archivo = f"evidencia_{file.filename}"
-    ruta_guardado = os.path.join(settings.UPLOAD_DIR, name_archivo)
+    ruta_guardado = os.path.join(settings.UPLOAD_DIR, nombre_archivo)
 
     # Asegurar que el directorio de cargas exista
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
