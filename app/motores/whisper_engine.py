@@ -4,7 +4,6 @@ import wave
 from typing import Dict, Any
 from transformers import pipeline
 
-# --- Configuración Preventiva y Portable de FFmpeg -------------------------
 RUTAS_FFMPEG_POSIBLES = [
     r"C:\ffmpeg\bin",
     r"C:\ffmpeg",
@@ -18,7 +17,6 @@ for _ruta in RUTAS_FFMPEG_POSIBLES:
 
 class WhisperEngine:
     def __init__(self):
-        # INCREMENTO DE FIABILIDAD: Escalamos a Whisper-Small local y gratuito
         print("[IA] Inicializando Motor 2: Transcriptor Whisper Preciso (openai/whisper-small)...")
         try:
             self.pipe = pipeline(
@@ -51,8 +49,6 @@ class WhisperEngine:
         try:
             print(f"[Whisper Small] Procesando señales de audio en: {os.path.basename(ruta_audio)}")
             
-            # OPTIMIZACIÓN DE ALTA FIABILIDAD:
-            # Evaluación por haz (num_beams=4) para máxima coherencia en español generalizado.
             resultado = self.pipe(
                 ruta_audio, 
                 return_timestamps=True,
@@ -61,17 +57,13 @@ class WhisperEngine:
                 }
             )
             
-            # Guardamos el resultado crudo en el caché de la clase por si se requiere auditar
             self.ultimo_resultado_raw = resultado
 
             texto_puro = resultado.get("text", "").strip()
             chunks_temporales = resultado.get("chunks", [])
 
-            # EXTRAER IDIOMA REAL DINÁMICO DESDE LOS METADATOS DE HUGGING FACE
-            # Si el pipeline no expone el nodo, usamos "es" por defecto probabilístico del MVP
             idioma_real = resultado.get("language", "es")
 
-            # MEDICIÓN NATIVA DEL ARCHIVO REAL MEDIANTE METADATOS WAV
             duracion_fisica_real = 0.0
             try:
                 with wave.open(ruta_audio, "rb") as archivo_wav:
@@ -79,11 +71,9 @@ class WhisperEngine:
                     rate = archivo_wav.getframerate()
                     duracion_fisica_real = frames / float(rate)
             except Exception:
-                # Si el celular envía un .m4a o un .mp3, 'wave' fallará limpiamente aquí,
-                # evitando cuellos de botella y protegiendo el pipeline.
+
                 duracion_fisica_real = 0.0
             
-            # 📊 Sincronizamos las métricas enviando de forma estricta los 4 parámetros dinámicos
             self._extraer_metadatos_forenses(texto_puro, chunks_temporales, duracion_fisica_real, idioma_real)
             
             return texto_puro
@@ -100,9 +90,7 @@ class WhisperEngine:
         total_chunks = len(chunks)
         duracion_habla = 0.0
         
-        # Validación ultra-robusta de chunks y timestamps para evitar IndexErrors
         if chunks and isinstance(chunks, list):
-            # Buscamos el último fragmento válido que contenga marcas de tiempo numéricas
             for chunk in reversed(chunks):
                 timestamp = chunk.get("timestamp")
                 if timestamp and isinstance(timestamp, (list, tuple)) and len(timestamp) == 2:
@@ -113,19 +101,15 @@ class WhisperEngine:
         if duracion_fisica == 0.0:
             duracion_fisica = duracion_habla
 
-        # Métrica Forense Única: Segundos de silencio y pausas muertas
         tiempo_silencio = max(0.0, duracion_fisica - duracion_habla)
         porcentaje_silencio = round((tiempo_silencio / duracion_fisica) * 100, 2) if duracion_fisica > 0 else 0.0
 
-        # Ritmo de palabras neta por segundo de habla activa
         palabras = texto.split()
         total_palabras = len(palabras)
         palabras_por_segundo = round(total_palabras / duracion_habla, 2) if duracion_habla > 0 else 0.0
 
-        # Almacenamos el idioma real dinámico extraído
         self.ultimo_idioma_detectado = f"{idioma} (Inferencia Dinámica Automatizada)"
 
-        # Guardamos todo en tu estado analítico interno
         self.metricas_ultimo_analisis = {
             "duracion_fisica_archivo_segundos": round(duracion_fisica, 2),
             "duracion_actividad_habla_segundos": round(duracion_habla, 2),
@@ -136,7 +120,6 @@ class WhisperEngine:
             "segmentacion_lineal": chunks
         }
 
-        # 📺 Reporte pericial en consola de VS Code
         print("\n[Auditoria Whisper] --- AUDITORIA DE ALTA PRECISION (MODULO WHISPER FORENSE) ---")
         print(f"[Auditoria Whisper] Idioma Detectado: {self.ultimo_idioma_detectado.upper()}")
         print(f"[Auditoria Whisper] Duracion Fisica de Archivo: {round(duracion_fisica, 2)} segs")

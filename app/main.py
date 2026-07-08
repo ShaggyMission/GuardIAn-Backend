@@ -1,32 +1,32 @@
 import os
 import sys
 import shutil
-import json  
-from fastapi import FastAPI, UploadFile, File, HTTPException, Form, Depends  
+import json  # <- Agregado para serializar la base de datos
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form, Depends  # <- Agregados Form y Depends
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session  
+from sqlalchemy.orm import Session  # <- Agregado para la sesión DB
 
 from app.config import settings
 from app.security import validar_archivo_audio
 from app.utils import calcular_riesgo_y_recomendaciones
 
+# =====================================================
 # 💾 Importaciones de tu Capa de Persistencia Forense
+# =====================================================
 from app.database import engine, Base, get_db
 from app.models import Evidencia
 
-# El motor nuevo vive en app/motores/voice_engine/ y usa imports internos planos.
 VOICE_ENGINE_DIR = os.path.join(os.path.dirname(__file__), "motores", "voice_engine")
 if VOICE_ENGINE_DIR not in sys.path:
     sys.path.insert(0, VOICE_ENGINE_DIR)
 
-# Importación de las instancias reales de los motores de IA
 from app.motores.whisper_engine import whisper_engine
 from app.motores.social_engine import social_engine
-
-# Motor 1 centralizado en el paquete nuevo app/motores/voice_engine/
 from app.motores.voice_engine import voice_ai_engine
 
+# =====================================================
 # ⚙️ Inicialización Automática de Infraestructura Local
+# =====================================================
 # Al encender el servidor, verifica o crea de forma transparente el archivo callshield.db
 Base.metadata.create_all(bind=engine)
 
@@ -35,7 +35,6 @@ app = FastAPI(
     description="Analizador Forense de Audios contra la Extorsión y el Fraude"
 )
 
-# Configuración de CORS para permitir conexiones desde la app móvil (Expo)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -52,7 +51,7 @@ def verificar_estado():
         "proyecto": settings.APP_NAME,
         "motores_cargados": [
             "Motor 1 (voice_engine / XLS-R-SLS)",
-            "Motor 2 (Whisper-Tiny)",
+            "Motor 2 (Whisper-small)",
             "Motor 3 (mDeBERTa Ingeniería Social)",
             "Motor 4 (Riesgo Consolidado)"
         ]
@@ -83,20 +82,16 @@ def _analizar_voice_engine_desde_ruta(ruta_audio: str):
 @app.post("/api/v1/analisis/forense")
 async def analizar_audio_forense(
     file: UploadFile = File(...),
-    uuid_dispositivo: str = Form(...),  
-    db: Session = Depends(get_db)       
+    uuid_dispositivo: str = Form(...),  # <- Tu parámetro inyectado de hardware
+    db: Session = Depends(get_db)       # <- Tu inyección de sesión de base de datos
 ):
-    # 🛡️ Validar extensión y tipo de archivo
     validar_archivo_audio(file)
 
-    # Definir rutas para el procesamiento seguro del archivo
     nombre_archivo = f"evidencia_{file.filename}"
     ruta_guardado = os.path.join(settings.UPLOAD_DIR, nombre_archivo)
 
-    # Asegurar que el directorio de cargas exista
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 
-    # Guardar el archivo
     try:
         with open(ruta_guardado, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
@@ -129,18 +124,26 @@ async def analizar_audio_forense(
         # =====================================================
         # MOTOR 3 - Ingeniería Social
         # =====================================================
-        analisis_social = social_engine.analizar_texto(texto_transcrito)
+        analisis_social = social_engine.analizar_texto(
+            texto_transcrito
+        )
+
         tacticas_detectadas = analisis_social["tacticas"]
 
         # =====================================================
         # MOTOR 4 - Riesgo Consolidado
         # =====================================================
-        analisis_riesgo = calcular_riesgo_y_recomendaciones(score_voz_ia, analisis_social)
+        analisis_riesgo = calcular_riesgo_y_recomendaciones(
+            score_voz_ia,
+            analisis_social
+        )
 
-        # 🌟 Estructura Consolidada Optimizada (Mantiene al 100% las métricas de tus compañeros)
+        # 🌟 Estructura Consolidada Optimizada (Respetando el código oficial)
         response_data = {
             "archivo_procesado": file.filename,
+
             "transcripcion_whisper": texto_transcrito,
+
             "metricas": {
                 "motor1_voz_ia": score_voz_ia,
                 "nivel_confianza_voz": reporte_forense.nivel_confianza,
@@ -148,6 +151,7 @@ async def analizar_audio_forense(
                 "riesgo_global": analisis_riesgo["riesgo_global"],
                 "nivel": analisis_riesgo["nivel_evaluacion"]
             },
+
             "desglose_tacticas": tacticas_detectadas,
             "analisis_social": {
                  "fraude_detectado": analisis_social["fraude_detectado"],
@@ -155,7 +159,8 @@ async def analizar_audio_forense(
                  "riesgo_social": analisis_social["riesgo_social"],
                  "nivel_riesgo": analisis_social["nivel_riesgo"]
             },
-            # Se respetan todas las variables añadidas por tu equipo para la defensa
+
+            # Información adicional del análisis forense
             "analisis_forense": {
                 "modelo": reporte_forense.evidencia_neuronal.nombre_modelo,
                 "modelo_disponible": reporte_forense.evidencia_neuronal.disponible,
@@ -170,6 +175,7 @@ async def analizar_audio_forense(
                 "configuracion_modelo": reporte_forense.configuracion,
                 "advertencia": reporte_forense.advertencia
             },
+            
             "detalles_audio_whisper": whisper_engine.obtener_metricas_forenses(),
             "recomendaciones_seguridad": analisis_riesgo["recomendaciones"]
         }
@@ -199,7 +205,7 @@ async def analizar_audio_forense(
         )
 
     finally:
-        # Limpieza preventiva del archivo
+        # Limpieza preventiva
         if os.path.exists(ruta_guardado):
             os.remove(ruta_guardado)
 

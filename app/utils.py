@@ -6,16 +6,16 @@ def calcular_riesgo_y_recomendaciones(
     score_voz_ia: float,
     resultado_social: dict
 ) -> dict:
+    """
+    Calcula el riesgo global unificado combinando el análisis de biometría acústica (Motor 1)
+    y el análisis de ingeniería social/NLP (Motor 3) para archivos multimedia de audio.
+    """
 
-
-    # Obtener riesgo generado por Motor 3
     riesgo_social = resultado_social.get(
         "riesgo_social",
         0
     )
 
-
-    # Riesgo consolidado
     if score_voz_ia >= 70:
         riesgo_global = round(max(score_voz_ia, (score_voz_ia * 0.25) + (riesgo_social * 0.75)))
     else:
@@ -25,45 +25,40 @@ def calcular_riesgo_y_recomendaciones(
             (riesgo_social * 0.75)
         )
 
-
     if riesgo_global >= 80:
         nivel = "CRÍTICO / ALTO RIESGO"
         recomendaciones = [
-            "No continúe la conversación bajo ningún concepto.",
-            "No entregue contraseñas, códigos de verificación SMS ni pines bancarios.",
-            "Cuelgue de inmediato y contacte a su entidad financiera mediante canales oficiales.",
-            "Reporte este número telefónico a las autoridades competentes."
-    ]
+            "Evidencia altamente peligrosa. Se recomienda el aislamiento inmediato del archivo.",
+            "Contenido con rasgos extremos de clonación de voz neuronal (Deepfake) y coacción.",
+            "No valide transferencias, pagos ni divulgación de credenciales basados en este audio.",
+            "Exporte este informe pericial y repórtelo a los canales de seguridad correspondientes."
+        ]
 
     elif riesgo_global >= 60:
         nivel = "ALTO / MUY SOSPECHOSO"
         recomendaciones = [
-            "Existe una alta probabilidad de intento de fraude.",
-            "No realice transferencias ni envíe dinero sin verificar la identidad por otro medio.",
-            "Confirme la información llamando directamente a la persona o institución."
-    ]
+            "Alta probabilidad de suplantación de identidad mediante IA generativa.",
+            "Los patrones léxicos indican un vector claro de manipulación o urgencia falsa.",
+            "No ejecute acciones financieras ni operativas solicitadas en este fragmento de audio.",
+            "Efectúe una verificación de identidad en canales oficiales fuera de banda."
+        ]
 
     elif riesgo_global >= 35:
         nivel = "MEDIO / SOSPECHOSO"
         recomendaciones = [
-            "Proceda con extrema precaución.",
-            "No realice transferencias ni depósitos sin verificar la identidad.",
-            "Verifique la información mediante otro canal."
-    ]
+            "Proceda con precaución analítica. Muestra con anomalías moderadas.",
+            "Se detectaron estructuras lingüísticas persuasivas que sugieren precaución.",
+            "Evite realizar depósitos o transferencias sin una doble validación con el emisor real."
+        ]
 
     else:
         nivel = "BAJO / RECONOCIMIENTO NORMAL"
         recomendaciones = [
-            "No se detectaron anomalías severas de ingeniería social o clonación.",
-            "Manténgase atento ante solicitudes inusuales."
-    ]
-
+            "Muestra estable. No se detectaron anomalías severas de ingeniería social o clonación.",
+            "Conserve las pautas estándar de seguridad digital y monitoreo de medios."
+        ]
 
     return {
-
         "riesgo_global": riesgo_global,
-
-        "nivel_evaluacion": nivel,
-
-        "recomendaciones": recomendaciones
-    }
+        "nivel": nivel,  
+        "recomendaciones_seguridad": recomendaciones  
