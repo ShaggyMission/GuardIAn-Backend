@@ -8,16 +8,13 @@ from app.config import settings
 from app.security import validar_archivo_audio
 from app.utils import calcular_riesgo_y_recomendaciones
 
-# El motor nuevo vive en app/motores/voice_engine/ y usa imports internos planos.
 VOICE_ENGINE_DIR = os.path.join(os.path.dirname(__file__), "motores", "voice_engine")
 if VOICE_ENGINE_DIR not in sys.path:
     sys.path.insert(0, VOICE_ENGINE_DIR)
 
-# Importación de las instancias reales de los motores de IA
 from app.motores.whisper_engine import whisper_engine
 from app.motores.social_engine import social_engine
 
-# Motor 1 centralizado en el paquete nuevo app/motores/voice_engine/
 from app.motores.voice_engine import voice_ai_engine
 
 
@@ -26,7 +23,6 @@ app = FastAPI(
     description="Analizador Forense de Audios contra la Extorsión y el Fraude"
 )
 
-# Configuración de CORS para permitir conexiones desde la app móvil (Expo)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -73,17 +69,13 @@ def _analizar_voice_engine_desde_ruta(ruta_audio: str):
 
 @app.post("/api/v1/analisis/forense")
 async def analizar_audio_forense(file: UploadFile = File(...)):
-    # 🛡️ Validar extensión y tipo de archivo
     validar_archivo_audio(file)
 
-    # Definir rutas para el procesamiento seguro del archivo
     nombre_archivo = f"evidencia_{file.filename}"
     ruta_guardado = os.path.join(settings.UPLOAD_DIR, nombre_archivo)
 
-    # Asegurar que el directorio de cargas exista
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 
-    # Guardar el archivo
     try:
         with open(ruta_guardado, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
@@ -185,6 +177,5 @@ async def analizar_audio_forense(file: UploadFile = File(...)):
         )
 
     finally:
-        # Limpieza preventiva
         if os.path.exists(ruta_guardado):
             os.remove(ruta_guardado)
