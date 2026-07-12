@@ -46,7 +46,12 @@ class OpenAIForensicEngine:
             "riesgo_social": entero del 0 al 100,
             "nivel_riesgo": string ("BAJO", "MEDIO", "ALTO" o "CRÍTICO"),
             "tacticas": lista de strings con las tácticas detectadas (ej. "urgencia", "solicitud_economica", "suplantacion", "amenaza", "manipulacion_emocional", "aislamiento", "obtencion_informacion"),
-            "es_narracion_tts": booleano (true si el texto describe explícitamente acciones de lectura automatizada, asistentes de voz, instrucciones de dictado o herramientas de conversión de texto a voz como 'estaré encantado de leerlo en voz alta', false de lo contrario)
+            "es_narracion_tts": booleano (true si el texto describe explícitamente acciones de lectura automatizada, asistentes de voz, instrucciones de dictado o herramientas de conversión de texto a voz como 'estaré encantado de leerlo en voz alta', false de lo contrario),
+            "alerta_lexico_local": booleano (true SI Y SOLO SI se detectan modismos, jergas o palabras clave utilizadas específicamente en estafas locales/regionales de países como Ecuador, México, Colombia, etc. ej. 'vacunas', 'padrino', 'plata o plomo'. Si no hay modismos, DEBE ser false),
+            "descripcion_lexico": string (breve descripción del modismo y su país de origen si 'alerta_lexico_local' es true. Si es false, deja un string vacío ""),
+            "idioma_detectado": string (idioma principal en el que está el audio, ej. 'Español'),
+            "muestra_legible": booleano (false si el texto es incomprensible, carece de sentido lógico o está severamente dañado. true si se puede leer normalmente),
+            "variaciones_idioma_detectadas": booleano (true si hay mezcla de idiomas o anglicismos inusuales en medio de la conversación. false de lo contrario)
         }
         """
 
@@ -77,7 +82,12 @@ class OpenAIForensicEngine:
             "riesgo_social": 0,
             "nivel_riesgo": "BAJO",
             "tacticas": [],
-            "es_narracion_tts": False
+            "es_narracion_tts": False,
+            "alerta_lexico_local": False,
+            "descripcion_lexico": "",
+            "idioma_detectado": "Español",
+            "muestra_legible": True,
+            "variaciones_idioma_detectadas": False
         }
 
 openai_engine = OpenAIForensicEngine()

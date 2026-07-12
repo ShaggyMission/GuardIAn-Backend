@@ -3,12 +3,17 @@ from fastapi import HTTPException, UploadFile
 
 AUDIOS_PERMITIDOS = {
     "audio/mpeg": ".mp3",
+    "audio/mp3": ".mp3",
     "audio/wav": ".wav",
     "audio/x-wav": ".wav",
     "audio/m4a": ".m4a",
     "audio/x-m4a": ".m4a",
     "audio/mp4": ".m4a",
-    "audio/ogg": ".ogg"
+    "audio/ogg": ".ogg",
+    "audio/opus": ".opus",
+    "audio/x-opus+ogg": ".opus",
+    "application/ogg": ".ogg",
+    "video/mp4": ".mp4",
 }
 
 def validar_archivo_audio(file: UploadFile) -> str:
@@ -19,12 +24,14 @@ def validar_archivo_audio(file: UploadFile) -> str:
     content_type = file.content_type
     filename = file.filename.lower()
     
+    extensiones_permitidas = (".mp3", ".wav", ".m4a", ".ogg", ".opus", ".mpeg", ".mp4")
+    
     if content_type not in AUDIOS_PERMITIDOS:
-        extension_valida = any(filename.endswith(ext) for ext in AUDIOS_PERMITIDOS.values())
+        extension_valida = any(filename.endswith(ext) for ext in extensiones_permitidas)
         if not extension_valida:
             raise HTTPException(
                 status_code=400,
-                detail=f"Tipo de archivo no soportado ({content_type}). Solo se permiten archivos de audio (.mp3, .wav, .m4a)"
+                detail=f"Tipo de archivo no soportado ({content_type}). Solo se permiten archivos de audio (.mp3, .wav, .m4a, .ogg, .opus, .mpeg, .mp4)"
             )
             
     _, ext = os.path.splitext(filename)
